@@ -1,5 +1,6 @@
 import express from 'express'
 import connect from './db.js';
+import rootRouter from './src/routes/rootRouter.js';
 
 
 // tạo object tổng của express
@@ -8,6 +9,10 @@ const app = express ();
 // thêm middleware để convert string về json với API POST và PUT
 
 app.use(express.json());
+
+// improt rootRouter toi index.js
+app.use(rootRouter)
+
 
 // viết API hello world 
 app.get("/hello-world" , (req,res)=>{
