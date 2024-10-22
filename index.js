@@ -1,13 +1,17 @@
 import express from 'express'
 import connect from './db.js';
 import rootRouter from './src/routes/rootRouter.js';
+import cors from "cors" ;
 
 
 // tạo object tổng của express
 const app = express ();
 
-// thêm middleware để convert string về json với API POST và PUT
+// thêm middleware cors để nhận request từ FE hoặc bên khác 
+app.use(cors());
 
+
+// thêm middleware để convert string về json với API POST và PUT
 app.use(express.json());
 
 // improt rootRouter toi index.js
@@ -38,12 +42,12 @@ app.get("/get-user/:id/:hoTen", (req,res)=>{
 });
 
 // lấy body từ API POST (create) và PUT (update)
-'{"id": 1 , "ho ten ":"hao"}'
-app.post("/create-user", (req,res)=>{
+// '{"id": 1 , "ho ten ":"hao"}'
+// app.post("/create-user", (req,res)=>{
 
-    let body = req.body;
-    res.send(body);
-})
+//     let body = req.body;
+//     res.send(body);
+// })
 
 app.get("/get-user-db", async (req,res)=>{
     const [data] =await connect.query(`

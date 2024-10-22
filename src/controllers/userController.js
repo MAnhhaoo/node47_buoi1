@@ -1,7 +1,8 @@
 import { json } from "express";
 import initModels from "../models/init-models.js";
 import sequelize from "../models/connect.js";
-import {Op} from "sequelize";
+import {Op} from "sequelize"; // để dùng like trong những câu query 
+import connect from "../../db.js";
 
 // tạo object model đại diện cho tất car model của ORM
 const model = initModels(sequelize);
@@ -35,7 +36,7 @@ const getUsersOrm = async (req ,res ) => {
                     model: model.video, // join voiws table video 
                     as: 'videos',
                     attributes: ["video_name"],
-                    required: true // sex join table theo kiểu inner join còn nếu k có thì mặc định lèt join    
+                    required: true // set join table theo kiểu inner join còn nếu k có thì mặc định lèt join    
                 }
             ]
         });
@@ -46,7 +47,7 @@ const getUsersOrm = async (req ,res ) => {
 }
 const getUserOrmById = async (req , res ) => {
     try { 
-        let {id} = req.params;
+        let {id} = req.params; // cách lấy thông tin của id 
         let data = await model.users.findOne({
             where : {
                 user_id : id
@@ -59,7 +60,7 @@ const getUserOrmById = async (req , res ) => {
 }
 const createUserOrm = async (req,res)=> {
     try{
-        let{full_name ,email} = req.body;
+        let{full_name ,email} = req.body; /// tạo user thì lấy body
          await model.users.create({
             full_name ,
             email
