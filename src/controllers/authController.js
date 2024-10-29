@@ -4,7 +4,7 @@ import { DATE, Op, where } from "sequelize"; // để dùng like trong những c
 import bcrypt from "bcrypt"; // dung de ma hoa
 import transporter from "../config/transporter.js";
 import jwt from "jsonwebtoken"; // thu vien lib tao token
-import { createToken } from "../config/jwt.js";
+import { createRefToken, createToken } from "../config/jwt.js";
 import crypto from "crypto"; // lib tao code forget password
 import code from "../models/code.js";
 const model = initModels(sequelize);
@@ -84,7 +84,19 @@ const login = async (req, res) => {
       userID: checkUser.user_id,
     };
     let accessToken = createToken(payload);
-    return res
+    let refreshToken = createRefToken(payload);
+    await model.users.update({
+      refresh_token: refreshToken
+  }, { where: {user_id: checkUser.user_id}})
+
+  // gắn refresh token cho cookie của response
+    res.cookie('refreshToken' , refreshToken , {
+      httpOnly: true ,
+      secure: false, // dungf riêng cho localhost
+      sameSite: 'Lax', // đảm bảo cookie đc gửi trong nhiều domain
+      maxAge: 7 * 24 * 60 *60 * 1000 // thời gian tồn tại là 7 ngày
+    })  
+  return res
       .status(200)
       .json({ message: "login success", token: accessToken });
   } catch (error) {
@@ -135,6 +147,8 @@ const loginFB = async (req, res) => {
 
         // tạo access token bằng khóa đối xứng
         let accessToken = createToken(payload);
+
+        // tạo refresh token
         return res
           .status(201)
           .json({ massage: "Login successfully", token: accessToken });
@@ -208,6 +222,9 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+
+
+
   const changePassword = async (req , res ) =>{
     try {
       let {email , code , newPass} = req.body;
@@ -249,4 +266,29 @@ const forgotPassword = async (req, res) => {
     }
   }
 
-export { signUp, login, loginFB, forgotPassword , changePassword };
+  const extendToken = async (req ,res ) => {
+    try {   
+      // lấy rếhToken từ cookies của req
+      let refreshToken = req.cookies.refreshToken;
+      if (!refreshToken) {
+        return res.status(401).json({massage: "401"});
+      }
+      // check refresh token trong db
+      let userRefToken = await model.users.findOne({
+        where : {
+          refresh_token: refreshToken
+        }
+      });
+      if(!userRefToken || userRefToken == null) {
+        return res.status(401).json({massage: "401"}) ;
+      }
+
+      // creat new access token
+      let newAccessToken = createToken({userId: userRefToken.user_id})
+      return res.status(200).json({massage: "success" , token: newAccessToken})
+    } catch (error) {
+      return res.status(500).json({massage : "err apo extend token"})
+    }
+  }
+
+export { signUp, login, loginFB, forgotPassword , changePassword  , extendToken};

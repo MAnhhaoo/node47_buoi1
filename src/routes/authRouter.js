@@ -1,5 +1,5 @@
 import express from "express";
-import { signUp ,login ,loginFB, forgotPassword ,changePassword } from "../controllers/authController.js";
+import { signUp ,login ,loginFB, forgotPassword ,changePassword ,extendToken } from "../controllers/authController.js";
 
 
 
@@ -18,6 +18,9 @@ athRouter.post("/login-fb", loginFB)
 // b1 define api forgot pass word 
 athRouter.post("/forgot-password" , forgotPassword);
 
+
 athRouter.post("/change-password" , changePassword)
+
+athRouter.post("/extend-token" , extendToken) ;
 export default athRouter;
 

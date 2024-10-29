@@ -2,13 +2,20 @@ import express from 'express'
 import connect from './db.js';
 import rootRouter from './src/routes/rootRouter.js';
 import cors from "cors" ;
+import cookieParser from 'cookie-parser';
 
 
 // tạo object tổng của express
 const app = express ();
 
-// thêm middleware cors để nhận request từ FE hoặc bên khác 
-app.use(cors());
+// thêm middleware cors để nhận request từ FE hoặc bên khác
+app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true //set true để BE nhận được cookie từ FE
+}));
+
+// thêm middleware để get info cookie từ request FE hoặc postman
+app.use(cookieParser());
 
 
 // thêm middleware để convert string về json với API POST và PUT
@@ -22,6 +29,11 @@ app.use(rootRouter)
 app.get("/hello-world" , (req,res)=>{
     res.send("hello word");
 });
+
+app.get("/health-check", (req, res)=>{
+    res.send("Server is normally")
+});
+
 
 app.get("/xin-chao", (req,res)=>{
     res.send("xin chao");

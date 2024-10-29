@@ -3,10 +3,18 @@ import jwt from "jsonwebtoken" // thu vien lib tao token
 // load file .env
 dotenv.config();
 
-const createToken = (data) =>{
-  return  jwt.sign({ payload: data }, process.env.SECRET_KEY , {
+const createToken = (data) => {
+    return jwt.sign({ payload: data }, process.env.SECRET_KEY, {
         algorithm: "HS256",
-        expiresIn: "30m" // m: minute, s: second, h: hour, d: day
+        expiresIn: "20s" // m: minute, s: second, h: hour, d: day
+    });
+}
+
+
+const createRefToken = (data) => {
+    return jwt.sign({ payload: data }, process.env.SECRET_KEY, {
+        algorithm: "HS256",
+        expiresIn: "7d" // m: minute, s: second, h: hour, d: day
     });
 }
 
@@ -38,5 +46,5 @@ const middleweToken = (req, res, next) => {
 }
 
 export {
-    createToken,middleweToken,
+    createToken,middleweToken,createRefToken
 }
