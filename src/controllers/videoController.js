@@ -1,56 +1,75 @@
 import initModels from "../models/init-models.js";
 import sequelize from "../models/connect.js";
-import {Op, where} from "sequelize"; // để dùng like trong những câu query 
-
+import { Op, where } from "sequelize"; // để dùng like trong những câu query 
+import { PrismaClient } from "@prisma/client";
 const model = initModels(sequelize);
 
+const prisma = new PrismaClient();
+
 const getVideos = async (req,res) => {
-try {
+ 
     let page = 3 ;
     let size = 4 ;
      let index = (page - 1) * size ;
-    let data = await model.video.findAll({
-        offset : index ,
-        limit : size , 
-    });
+    // let data = await model.video.findAll({
+    //     offset : index ,
+    //     limit : size , 
+    // });
     // vd page = 2 limit = 4
     // bỏ qua 4 item đầu tiên và lấy 4 item tiếp theo
-    return res.status(200).json(data)
-}
-catch (error){
-    console.log(error)
-    return res.status(500).json({massage: "error for api get list videos"})
-}
+    let data = await prisma.video.findMany({
+        skip: index ,
+        take : size 
+    });
+    return res.status(201).json(data)
+
+
 
  }
 
  const getTypes = async (req ,res ) =>{
-    try {
-        let data = await model.video_type.findAll();
+     let data = await prisma.video_type.findMany({
+        where: {
+            type_id: 1
+        }, 
+        select: {
+            type_name : true
+        }
+     });
         return res.status(200).json(data)
-    }
-    catch(error){
-        console.log(error);
-        return res.status(500).json({massage: "error for api get type videos"})
-    }
+    
  }
 
  const getListVideoTypes = async (req, res) =>{
-    try {
-        let {typeID} = req.params;
-        console.log(typeID)
-        let data = await model.video.findAll({
-            where : {
-                type_id: typeID
-            }
-        })
-        return res.status(200).json(data);
-    }
-    catch (error){
-            return res.status(500).json({massage: "error for api get list video by type id"})
-    }
- }
-
+        // let {typeID} = req.params;
+        // console.log(typeID)
+        // let data = await model.video.findAll({
+        //     where : {
+        //         type_id: typeID
+        //     }
+        // })
+            // Lấy `videoId` từ `req.params`
+            let { videoId } = req.params;
+    
+            // Tìm video với `videoId` và bao gồm thông tin người dùng liên quan
+            let data = await prisma.video.findFirst({
+                where: {
+                    video_id: Number(videoId)
+                },
+                include: {
+                    users: {
+                        select: {
+                            user_id: true,
+                            full_name: true,
+                            email: true
+                        }
+                    }
+                }
+            });
+            return res.status(200).json(data)
+            
+        };
+    
  const getVideoDetail = async (req ,res) =>{
     try{
         let {videoId} = req.params;

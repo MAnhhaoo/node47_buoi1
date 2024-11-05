@@ -25,6 +25,13 @@ app.use(express.json());
 app.use(rootRouter)
 
 
+// define middleware để handle lỗi
+// define cho express hiểu khi có error xảy ra thì express nó sẽ tìm tới middleware này
+// luuư ý phải truyền 4 params để handle lỗi 
+app.use((err , req , res , next)=>{
+    res.status(err.status || 500).json({message: err.message || "INTERNAL SERVER"})
+});
+
 // viết API hello world 
 app.get("/hello-world" , (req,res)=>{
     res.send("hello word");

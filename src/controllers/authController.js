@@ -8,31 +8,42 @@ import { createRefToken, createToken } from "../config/jwt.js";
 import crypto from "crypto"; // lib tao code forget password
 import code from "../models/code.js";
 const model = initModels(sequelize);
+import {PrismaClient} from '@prisma/client'
 
+const prisma = new PrismaClient();
 const signUp = async (req, res) => {
   try {
     // lấy input từ body request (email,full_name,pass_world)
-    let { full_name, email, pass_word } = req.body;
+    // let { full_name, email, pass_word } = req.body;
 
-    // kiểm tra email có tốn tại trong db hay k
-    let checkUser = await model.users.findOne({
-      where: {
-        email,
-      },
-    });
+    // // kiểm tra email có tốn tại trong db hay k
+    // let checkUser = await model.users.findOne({
+    //   where: {
+    //     email,
+    //   },
+    // });
     // code theo hướng fail first: bắt những case lỗi trc
+    let checkUser = await prisma.users.findFirst ({
+      where: {email}
+    })
     if (checkUser) {
       return res.status(400).json({ message: "email is wrong" });
     }
     // creat new user
     // creat => creat
 
-    await model.users.create({
-      full_name,
-      email,
-      pass_word: bcrypt.hashSync(pass_word, 10),
-    });
-
+    // await model.users.create({
+    //   full_name,
+    //   email,
+    //   pass_word: bcrypt.hashSync(pass_word, 10),
+    // });
+    await prisma.users.create({
+      data: {
+        full_name,
+        email,
+        pass_word
+      }
+    })
     // send email
     // b1: cấu honhf email
     const mailOption = {

@@ -19,7 +19,7 @@ athRouter.post("/login-fb", loginFB)
 athRouter.post("/forgot-password" , forgotPassword);
 
 
-athRouter.post("/change-password" , changePassword)
+athRouter.post("/change-password" , changePassword);
 
 athRouter.post("/extend-token" , extendToken) ;
 export default athRouter;
