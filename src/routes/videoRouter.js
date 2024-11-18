@@ -9,7 +9,44 @@ const videoRouter = express.Router();
 
 // deefine API get list videos 
 
+/**
+* @swagger
+* /video/get-videos:
+*   get:
+*       description: responses
+*       tags: [User]
+*       parameters:
+*       - in: path
+*         name: id
+*       - in: body
+*         name: user
+*         schema:
+*             type: object
+*             properties:
+*                   video_name:
+*                       type: string
+*                   thumbnail:
+*                       type: string
+*                   duration:
+*                       type: number
+*       responses:
+*             200:
+*                description: res
+*/
 videoRouter.get("/get-videos" , tryCatch(getVideos))
+
+
+/**
+* @swagger
+* /video/get-types:
+*  post:
+*       description: responses
+*       tags: [Video]
+*       responses:
+*           200:
+*               description: success
+*/
+
 
 
 videoRouter.get("/get-types",getTypes)
