@@ -15,8 +15,9 @@ export class CloudinaryUploadService{
                 (error :any , result: UploadApiResponse)=>{ // upload hinh len cloudinary
                     if(error) {
                         reject(error)
-                        
+
                     } else {
+                        
                         resolve(result)
                     }
                 }
