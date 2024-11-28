@@ -1,14 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, HttpStatus, UseInterceptors, UploadedFile, UploadedFiles, UseGuards } from '@nestjs/common';
 import { VideoService } from './video.service';
-import { CreateVideoDto } from './dto/create-video.dto';
+import { CreateVideoDto, FilesUploadDtos, FileUploadDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
 import {Response} from "express";
-import { ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 import { VideoDto } from './dto/video.dto';
 import { ListVideoDto } from './dto/list-video.dto';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { storage } from 'src/shared/upload.service';
+import { CloudinaryUploadService } from 'src/shared/cloud-upload.service';
+import { EmailService } from 'src/email/email.service';
+import { EmailDto } from 'src/user/dto/email.dto';
+import { AuthGuard } from '@nestjs/passport';
 @Controller('video')
 export class VideoController {
-  constructor(private readonly videoService: VideoService) {}
+  constructor(private readonly videoService: VideoService,
+              private readonly cloudinaryService: CloudinaryUploadService,
+              private readonly emailService: EmailService
+  ) {}
 
   @Post()
   async create(@Body() createVideoDto: CreateVideoDto,
@@ -18,6 +27,9 @@ export class VideoController {
     return res.status(HttpStatus.CREATED).json(newVideo);
   }
 // page , size , keyword <= query
+@ApiBearerAuth() //define cho swagger để imprt token vàp header của API 
+@UseGuards(AuthGuard('jwt')) // thêm middleware authentication cho API (NestJS) và thêm trước decorator method 
+
   @Get()
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'size', required: false, type: Number })
@@ -37,6 +49,67 @@ export class VideoController {
     return res.status(HttpStatus.OK).json({videos , page , size});
   }
 
+
+
+  @Post ('/upload-thumbnail')
+  @ApiConsumes('multipart/form-data')// define kiểu dữ liệu gửi lên swagger
+  @ApiBody({
+    type: FileUploadDto,
+    required: true
+  }) // define body trên swagger
+  @UseInterceptors(FileInterceptor('hinhAnh', {storage: storage('video')}))
+  uploadthumnail(
+    @UploadedFile() file: Express.Multer.File,
+    @Res() res:Response
+  ):any{
+    return res.status(HttpStatus.OK).json(file);
+  }
+
+
+  // define api upload single cloud
+  @Post ('/upload-thumbnail-cloud')
+  @ApiConsumes('multipart/form-data')// define kiểu dữ liệu gửi lên swagger
+  @ApiBody({
+    type: FileUploadDto,
+    required: true
+  }) // define body trên swagger
+  @UseInterceptors(FileInterceptor('hinhAnh'))
+  async uploadThumbnailCloud( 
+    @UploadedFile() file: Express.Multer.File,
+    @Res() res:Response
+  ):Promise<any>{
+    try {
+      const result = await this.cloudinaryService.uploadImage(file , "video");
+      return res.status(HttpStatus.OK).json(result);
+
+    } catch (error) {
+      console.log(error)
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({message: "upload fail"})
+    }
+  }
+
+
+
+
+
+  // upload nhieu img
+  @Post ('/upload-multiple-thumbnail')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: FilesUploadDtos,
+    required: true 
+  })
+  @UseInterceptors(FilesInterceptor('hinhAnhs', 20, {storage: storage('video')}))
+  uploadMultpileThumbnsil(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Res() res:Response
+  ): any {
+    return res.status(HttpStatus.OK).json(files);
+  }
+  
+
+
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.videoService.findOne(+id);
@@ -50,5 +123,31 @@ export class VideoController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.videoService.remove(+id);
+  }
+
+
+
+  // define api send email
+  @Post('/send-email')
+  @ApiBody({
+    type: EmailDto,
+  })
+  async sendEmail(
+    @Body() body:EmailDto,
+    @Res()  res: Response
+  ): Promise <any> {
+   try {
+    // lấy ìnfo {emailTo , subject , text} từ body
+    const {emailTo , subject , text} = body;
+    // gọi service Email
+    await this.emailService.sendEmail(emailTo , subject ,text);
+    return res.status(HttpStatus.OK).json({message : "send email success"})
+
+
+
+   } catch (error) {
+    console.log(error)
+   return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({message: "send mail fail"})
+   } 
   }
 }

@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
 import { VideoService } from './video.service';
 import { VideoController } from './video.controller';
+import { ShareModule } from 'src/shared/shared.module';
+import { EmailModule } from 'src/email/email.module';
+import { JwtStrategy } from 'src/strategy/jwt.strategy';
 
 @Module({
   controllers: [VideoController],
-  providers: [VideoService],
+  providers: [VideoService , JwtStrategy], // import JwtStrategy để vẻify token 
+  imports: [ShareModule , EmailModule] // import ShareModule để xử lý CloudinaryService
 })
 export class VideoModule {}

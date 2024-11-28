@@ -1,0 +1,14 @@
+import {Module} from "@nestjs/common"
+import { CloudinaryModule } from "src/cloudinary/cloudinary.module"
+import { CloudinaryService } from "src/cloudinary/cloudinary.service" 
+import { CloudinaryUploadService } from "./cloud-upload.service"
+
+@Module({
+    imports: [CloudinaryModule], // import module cloudinaryModule vao shareModule
+    providers: [CloudinaryUploadService],
+    exports: [CloudinaryUploadService] // export cloudinaryservice để sẻ dụng các module khác 
+})
+
+export class ShareModule {
+
+}

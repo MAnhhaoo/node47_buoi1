@@ -26,3 +26,16 @@ export class CreateVideoDto {
 
 
 }
+
+// DTO cho upload 1 image
+export class FileUploadDto {
+    @ApiProperty({type: 'string' , format: 'binary'})
+    hinhAnh: any;
+}
+
+// DTO cho upload nhieu images
+
+export class FilesUploadDtos{
+    @ApiProperty({type: 'string', format: 'binary'})
+    hinhAnhs: any[];
+}
