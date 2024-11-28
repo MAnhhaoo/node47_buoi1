@@ -17,7 +17,6 @@ export class CloudinaryUploadService{
                         reject(error)
 
                     } else {
-                        
                         resolve(result)
                     }
                 }
